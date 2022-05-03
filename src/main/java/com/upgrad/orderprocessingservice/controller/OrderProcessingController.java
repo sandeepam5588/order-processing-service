@@ -1,5 +1,6 @@
 package com.upgrad.orderprocessingservice.controller;
 
+import com.upgrad.orderprocessingservice.exception.OrderProcessingFailedException;
 import com.upgrad.orderprocessingservice.model.OrderResponseVO;
 import com.upgrad.orderprocessingservice.model.OrderVO;
 import com.upgrad.orderprocessingservice.service.OrderProcessingService;
@@ -17,7 +18,7 @@ public class OrderProcessingController {
     }
 
     @PostMapping("/v1/order")
-    public ResponseEntity<OrderResponseVO> createOrder(@RequestBody OrderVO orderVO){
+    public ResponseEntity<OrderResponseVO> createOrder(@RequestBody OrderVO orderVO) throws OrderProcessingFailedException {
         return ResponseEntity.ok(orderProcessingService.createOrder(orderVO));
     }
 }

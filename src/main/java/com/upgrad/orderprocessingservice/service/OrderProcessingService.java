@@ -1,11 +1,13 @@
 package com.upgrad.orderprocessingservice.service;
 
 import com.upgrad.orderprocessingservice.entity.Order;
+import com.upgrad.orderprocessingservice.exception.OrderProcessingFailedException;
 import com.upgrad.orderprocessingservice.feign.PaymentClient;
 import com.upgrad.orderprocessingservice.model.OrderResponseVO;
 import com.upgrad.orderprocessingservice.model.OrderVO;
 import com.upgrad.orderprocessingservice.model.PaymentResponseVO;
 import com.upgrad.orderprocessingservice.repository.OrderProcessingRepository;
+import feign.FeignException;
 import org.springframework.stereotype.Service;
 
 import static com.upgrad.orderprocessingservice.constants.OrderProcessingConstants.*;
@@ -20,8 +22,13 @@ public class OrderProcessingService {
         this.paymentClient = paymentClient;
     }
 
-    public OrderResponseVO createOrder(OrderVO orderVO){
-        PaymentResponseVO paymentResponseVO = paymentClient.getPaymentStatus(orderVO.getOrderId());
+    public OrderResponseVO createOrder(OrderVO orderVO) throws OrderProcessingFailedException {
+        PaymentResponseVO paymentResponseVO = null;
+        try {
+             paymentResponseVO = paymentClient.getPaymentStatus(orderVO.getOrderId());
+        } catch (FeignException e){
+            throw new OrderProcessingFailedException();
+        }
         OrderResponseVO orderResponseVO = OrderResponseVO
                 .builder()
                 .orderId(orderVO.getOrderId())

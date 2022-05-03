@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @FeignClient(name = "payment-service", url = "${payment-service-url}")
 public interface PaymentClient {
+
     @GetMapping("/v1/payments/status")
     public PaymentResponseVO getPaymentStatus(@RequestParam String orderId);
 }

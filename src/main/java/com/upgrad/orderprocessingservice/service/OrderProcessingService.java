@@ -4,8 +4,11 @@ import com.upgrad.orderprocessingservice.entity.Order;
 import com.upgrad.orderprocessingservice.feign.PaymentClient;
 import com.upgrad.orderprocessingservice.model.OrderResponseVO;
 import com.upgrad.orderprocessingservice.model.OrderVO;
+import com.upgrad.orderprocessingservice.model.PaymentResponseVO;
 import com.upgrad.orderprocessingservice.repository.OrderProcessingRepository;
 import org.springframework.stereotype.Service;
+
+import static com.upgrad.orderprocessingservice.constants.OrderProcessingConstants.*;
 
 @Service
 public class OrderProcessingService {
@@ -18,17 +21,28 @@ public class OrderProcessingService {
     }
 
     public OrderResponseVO createOrder(OrderVO orderVO){
-        //call the payment service microservice 
-        paymentClient.getPaymentStatus(orderVO.getOrderId());
-
-        orderProcessingRepository.save(Order
-                .builder()
-                .orderID(orderVO.getOrderId())
-                .orderAmount(orderVO.getOrderAmount())
-                .build());
-        return OrderResponseVO
+        PaymentResponseVO paymentResponseVO = paymentClient.getPaymentStatus(orderVO.getOrderId());
+        OrderResponseVO orderResponseVO = OrderResponseVO
                 .builder()
                 .orderId(orderVO.getOrderId())
                 .build();
+
+        if (PAYMENT_SUCCESS.equals(paymentResponseVO.getPaymentStatus())){
+            orderProcessingRepository.save(Order
+                    .builder().orderID(orderVO.getOrderId())
+                    .orderAmount(orderVO.getOrderAmount())
+                    .orderStatus(ORDER_CREATED)
+                    .paymentReferenceNumber(paymentResponseVO.getPaymentReferenceNumber())
+                    .build());
+            orderResponseVO.setOrderStatus(ORDER_CREATED);
+        } else {
+            orderProcessingRepository.save(Order
+                    .builder().orderID(orderVO.getOrderId())
+                    .orderAmount(orderVO.getOrderAmount())
+                    .orderStatus(ORDER_PROCESSING_FAILED)
+                    .build());
+            orderResponseVO.setOrderStatus(ORDER_PROCESSING_FAILED);
+        }
+        return orderResponseVO;
     }
 }

@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PaymentResponseVO {
     private String orderId;
-    private String orderStatus;
+    private String paymentStatus;
     private String paymentReferenceNumber;
 }
